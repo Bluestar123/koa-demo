@@ -77,3 +77,29 @@ usersRouter.get('/:id', auth, (ctx) => {
 // 2. 如果koa-router支持这个方法但是没写，返回405； 如果koa-router不支持这个方法，返回 501 状态码
 app.use(usersRouter.allowedMethods())
 ```
+
+# 路由参数获取
+### query
+```
+ctx.query 获取
+```
+
+### params
+```
+ctx.params.
+```
+
+### body
+```
+npm i koa-bodyparser --save
+
+const bodyParser = require('koa-bodyparser')
+app.use(bodyParser())
+
+使用 ctx.request.body
+```
+
+### header
+```
+ctx.header
+```

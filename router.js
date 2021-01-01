@@ -1,5 +1,6 @@
 const Koa = require('koa')
 const Router = require('koa-router')
+const bodyParser = require('koa-bodyparser')
 
 const app = new Koa()
 const router = new Router()
@@ -25,6 +26,8 @@ const auth = async (ctx, next) => {
 // })
 
 usersRouter.get('/', ctx => {
+  // 获取query
+  console.log(ctx.query)
   ctx.body = [
     {
       name: '测不准1'
@@ -36,10 +39,13 @@ usersRouter.get('/', ctx => {
 })
 // 使用前缀
 usersRouter.post('/', ctx => {
+  console.log(ctx.header)
+  console.log(ctx.request.body)
   ctx.body = { name: '测不准3' }
 })
 
 usersRouter.get('/:id', (ctx) => {
+  console.log(ctx.params.id)
   ctx.body = { name: '测不准3' }
 })
 
@@ -51,6 +57,7 @@ usersRouter.delete('/:id', ctx => {
 })
 
 // 注册到中间件中
+app.use(bodyParser())
 app.use(router.routes())
 app.use(usersRouter.routes())
 // 查看接口支持的方法 get post put ..
