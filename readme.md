@@ -94,6 +94,7 @@ ctx.params.
 npm i koa-bodyparser --save
 
 const bodyParser = require('koa-bodyparser')
+// 中间件需要放在路由中间件的前面
 app.use(bodyParser())
 
 使用 ctx.request.body
@@ -103,3 +104,15 @@ app.use(bodyParser())
 ```
 ctx.header
 ```
+
+# 设置响应
+```
+// 设置响应头
+ctx.set('Allow', 'get, post')
+
+ctx.body = ''
+
+ctx.status = 402
+```
+
+# restful-api 目录结构
