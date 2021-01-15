@@ -116,3 +116,15 @@ ctx.status = 402
 ```
 
 # restful-api 目录结构
+
+
+
+
+# schema 设计 （JSON 结构）
+## 用户模块
+
+- 分析用户模块属性
+- 编写用户模块 Schema
+- 使用 Schema 生成用户 Model （数据库表结构）
+
+## mongoose 实现增删改查

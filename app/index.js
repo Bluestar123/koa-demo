@@ -1,10 +1,16 @@
 const Koa = require('koa')
 const bodyParser = require('koa-bodyparser')
-
+const error = require('koa-json-error')
+const parameter = require('koa-parameter')
+const mongoose = require('mongoose')
+const config = require('./config')
 // 实例化 application
 const app = new Koa()
 const PORT = 3000
 const routing = require('./routes')
+
+mongoose.connect(config.connectionStr, { useNewUrlParser: true }, () => console.log('数据库连接成功'))
+mongoose.connection.on('error', console.error)
 
 // // use 中一个函数 即中间件
 // app.use(async (ctx, next) => {
@@ -25,7 +31,27 @@ const routing = require('./routes')
 //   console.log(3)
 // })
 
+// 异常处理
+// app.use(async (ctx, next) => {
+//   try {
+//     await next()
+//   } catch (err) {
+//     ctx.status = err.status || err.statusCode || 500 // 运行时报错返回500
+//     ctx.body = {
+//       msg: err.message
+//     }
+//   }
+// })
+
+// 默认配置
+app.use(error({
+  // stack包含信息，生产环境不返回
+  postFormat: (e, {stack, ...rest}) => process.env.NODE_ENV === 'production' ? rest : {stack, ...rest}
+}))
+
 app.use(bodyParser())
+// 校验请求体的，放在后面
+app.use(parameter(app)) // 上下文 ctx 加个方法，全局校验
 routing(app)
 
 app.listen(PORT, () => console.log(`程序启动 ${PORT}`))
