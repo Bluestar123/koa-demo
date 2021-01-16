@@ -1,5 +1,6 @@
+const jsonwebtoken = require('jsonwebtoken')
 const User = require('../models/user')
-
+const { secret } = require('../config')
 class UsersCtl {
   async find(ctx) {
     // 操作数据库一定要 await
@@ -53,6 +54,25 @@ class UsersCtl {
       ctx.throw(404, '用户不存在')
     } else {
       ctx.body = user
+    }
+  }
+
+  // 登录信息验证
+  async login(ctx) {
+    ctx.verifyParams({
+      name: { type: 'string', required: true},
+      password: { type: 'string', required: true }
+    })
+    const user = await User.findOne(ctx.request.body)
+    if (!user) {
+      ctx.throw(401, '用户名或密码不正确')
+    }
+
+    // 不敏感信息
+    const { _id, name } = user
+    const token = jsonwebtoken.sign({ _id, name }, secret, { expiresIn: '1d' }) // 过期时间
+    ctx.body = {
+      token
     }
   }
 }
