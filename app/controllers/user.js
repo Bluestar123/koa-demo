@@ -2,6 +2,15 @@ const jsonwebtoken = require('jsonwebtoken')
 const User = require('../models/user')
 const { secret } = require('../config')
 class UsersCtl {
+  // 单独写 或者 写在model 都可以，中间件
+  async checkOwner(ctx, next) {
+    // 如果操作人不是自己
+    if (ctx.params.id !== ctx.state.user._id) {
+      ctx.throw(403, '没有权限操作')
+    }
+    await next()
+  }
+
   async find(ctx) {
     // 操作数据库一定要 await
     ctx.body = await User.find() // .select('+password')
