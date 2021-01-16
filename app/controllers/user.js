@@ -3,7 +3,7 @@ const User = require('../models/user')
 class UsersCtl {
   async find(ctx) {
     // 操作数据库一定要 await
-    ctx.body = await User.find()
+    ctx.body = await User.find() // .select('+password')
   }
   async findById(ctx) {
     // if (ctx.params.id * 1 >= db.length) {
@@ -22,16 +22,24 @@ class UsersCtl {
     // 校验name,age ,不满足条件返回 422 状态码
     ctx.verifyParams({
       name: { type: 'string', required: true},
-      age: {type: 'number', required: false}
+      password: {type: 'string', required: true}
     })
+
+    // 校验用户唯一性， 先查数据库中是否存在
+    const { name } = ctx.request.body
+    const repeatedUser = await User.findOne({ name })
+    if (repeatedUser) {
+      ctx.throw(409, '用户名已经存在')
+    }
 
     const user = await new User(ctx.request.body).save()
     ctx.body = user
   }
   async update(ctx) {
-    // ctx.verifyParams({
-    //   name: { type: 'string', required: true }
-    // })
+    ctx.verifyParams({
+      name: { type: 'string', required: true },
+      password: {type: 'string', required: true}
+    })
     const user = await User.findByIdAndUpdate(ctx.params.id, ctx.request.body)
     if (!user) {
       ctx.throw(404, '用户不存在')

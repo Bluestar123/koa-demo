@@ -4,16 +4,26 @@ const mongoose = require('mongoose')
 const { Schema, model } = mongoose
 
 // 通过schema 设计出表结构，嵌套的复杂结构也可以
+// 用户唯一性
 const userSchema = new Schema({
+  __v: {
+    type: Number,
+    select: false
+  },
   name: {
     type: String,// 传入会被转成 string
     required: true
   },
-  age: {
-    type: Number,
-    required: false,
-    default: 0
+  password: {
+    type: String,
+    required: true,
+    select: false, // 不会返回
   }
+  // age: {
+  //   type: Number,
+  //   required: false,
+  //   default: 0
+  // }
 })
 
 // 创建 user 表
