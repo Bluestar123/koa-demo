@@ -1,8 +1,12 @@
 const Koa = require('koa')
-const bodyParser = require('koa-bodyparser')
+
+// 只支持 json 和 form 的请求体 不支持文件 使用 koa-body 替换
+const koaBody = require('koa-body')
 const error = require('koa-json-error')
 const parameter = require('koa-parameter')
+const koaStatic = require('koa-static')
 const mongoose = require('mongoose')
+const path = require('path')
 const config = require('./config')
 // 实例化 application
 const app = new Koa()
@@ -43,13 +47,25 @@ mongoose.connection.on('error', console.error)
 //   }
 // })
 
+// 静态文件放在最前面 生成静态文件路径
+app.use(koaStatic(path.join(__dirname, 'public')))
+
 // 默认配置
 app.use(error({
   // stack包含信息，生产环境不返回
   postFormat: (e, {stack, ...rest}) => process.env.NODE_ENV === 'production' ? rest : {stack, ...rest}
 }))
 
-app.use(bodyParser())
+// 设置koa-body
+app.use(koaBody({
+  multipart: true,
+  formidable: {
+    uploadDir: path.join(__dirname, '/public/uploads'),//上传目录
+    keepExtensions: true, // 保留拓展名
+  }
+}))
+
+app.use(koaBody())
 // 校验请求体的，放在后面
 app.use(parameter(app)) // 上下文 ctx 加个方法，全局校验
 routing(app)
