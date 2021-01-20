@@ -27,10 +27,10 @@ const router = new Router({
 // }
 const auth = jwt({ secret })
 
-router.get('/', auth, find)
+router.get('/', find)
 
 // 使用前缀
-router.post('/', auth, create)
+router.post('/', create)
 
 router.get('/:id', findById)
 

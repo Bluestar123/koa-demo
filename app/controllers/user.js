@@ -29,14 +29,15 @@ class UsersCtl {
     }
   }
   async create(ctx) {
+    console.log(2222222222)
     // 校验name,age ,不满足条件返回 422 状态码
-    ctx.verifyParams({
-      name: { type: 'string', required: true},
-      password: {type: 'string', required: true}
-    })
-
+    // ctx.verifyParams({
+    //   name: { type: 'string', required: true},
+    //   password: {type: 'string', required: true}
+    // })
     // 校验用户唯一性， 先查数据库中是否存在
     const { name } = ctx.request.body
+    console.log(name, 123)
     const repeatedUser = await User.findOne({ name })
     if (repeatedUser) {
       ctx.throw(409, '用户名已经存在')
@@ -48,7 +49,12 @@ class UsersCtl {
   async update(ctx) {
     ctx.verifyParams({
       name: { type: 'string', required: true },
-      password: {type: 'string', required: true}
+      password: {type: 'string', required: true},
+      avatar_url: { type: 'string', required: false },
+      gender: { type: 'string', required: false },
+      locations: { type: 'array', itemType: 'string', required: false },
+      business: { type: 'string', required: false },
+      employments: { type: 'array', itemType: 'object', required: false } // 小写
     })
     const user = await User.findByIdAndUpdate(ctx.params.id, ctx.request.body)
     if (!user) {

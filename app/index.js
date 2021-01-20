@@ -65,7 +65,6 @@ app.use(koaBody({
   }
 }))
 
-app.use(koaBody())
 // 校验请求体的，放在后面
 app.use(parameter(app)) // 上下文 ctx 加个方法，全局校验
 routing(app)
