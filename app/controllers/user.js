@@ -19,7 +19,11 @@ class UsersCtl {
     // if (ctx.params.id * 1 >= db.length) {
     //   ctx.throw(412, '先决条件失败：id 大于等于数组长度')
     // }
-    const user = await User.findById(ctx.params.id)
+    
+    // 通过 fields 字段过滤
+    const { fields } = ctx.query
+    const selectFields = fields.split(';').filter(f => f).map(f => ' +' + f).join('')
+    const user = await User.findById(ctx.params.id).select(selectFields)
 
     if (!user) {
       // id 位数对应上，随便写不行 500

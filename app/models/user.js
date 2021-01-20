@@ -32,6 +32,7 @@ const userSchema = new Schema({
   },
   // 字符串数组
   locations: {
+    select: false,
     type: [{
       type: String
     }]
@@ -41,6 +42,7 @@ const userSchema = new Schema({
   },
   // 对象数组
   employments: {
+    select: false,
     type: [
       {
         company: {
@@ -53,6 +55,7 @@ const userSchema = new Schema({
     ]
   },
   educations: {
+    select: false,
     type: [{
       school: {type: String},
       major: { type: String },
