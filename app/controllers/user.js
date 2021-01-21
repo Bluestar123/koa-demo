@@ -5,7 +5,7 @@ class UsersCtl {
   // 单独写 或者 写在model 都可以，中间件
   async checkOwner(ctx, next) {
     // 如果操作人不是自己
-    if (ctx.params.id !== ctx.state.user._id) {
+    if (ctx.params.id !== ctx.state.user._id) {// 权限认证完后会存在state中
       ctx.throw(403, '没有权限操作')
     }
     await next()
@@ -93,6 +93,45 @@ class UsersCtl {
     ctx.body = {
       token
     }
+  }
+
+  // 获取某人的关注者 (我关注了水)
+  async listFollowing(ctx) {
+    // 通过populate 的 following 字段内会是具体的 用户信息
+    const user = await User.findById(ctx.params.id).select('+following').populate('following')
+    if (!user) ctx.throw(404)
+    ctx.body = user.following
+  }
+
+  // 获取xxxid的粉丝列表 （谁关注了我）
+  async listFollower(ctx) {
+    // 通过populate 的 following 字段内会是具体的 用户信息
+    const users = await User.find({following: ctx.params.id})
+    ctx.body = users
+  }
+
+  // 关注某人 (处理完数据库需要save)
+  async follow(ctx) {
+    const ownUser = await User.findById(ctx.state.user._id).select('+following')
+    // mongoose 自带的数据类型, 使用toString（）方法
+    if (!ownUser.following.map(id => id.toString()).includes(ctx.params.id)) {
+      ownUser.following.push(ctx.params.id)
+      ownUser.save()
+    }
+    ctx.status = 204
+  }
+
+  // 取消关注
+  async unfollow(ctx) {
+    // 当前登录者
+    const ownUser = await User.findById(ctx.state.user._id).select('+following')
+    const index = ownUser.following.map(id => id.toString()).indexOf(ctx.params.id)
+    // mongoose 自带的数据类型, 使用toString（）方法
+    if (index > -1) {
+      ownUser.following.splice(index, 1)
+      ownUser.save()
+    }
+    ctx.status = 204
   }
 }
 

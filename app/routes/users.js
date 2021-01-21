@@ -2,7 +2,7 @@ const Router = require('koa-router')
 // const jsonwebtoken = require('jsonwebtoken')
 const jwt = require('koa-jwt')
 const { secret } = require('../config')
-const { findById, create, update, find, del, login, checkOwner } = require('../controllers/user')
+const { findById, create, update, find, del, login, checkOwner, listFollowing, follow, unfollow } = require('../controllers/user')
 const router = new Router({
   prefix: '/users'
 })
@@ -41,4 +41,13 @@ router.delete('/:id', auth, checkOwner, del)
 
 // 登录验证 不是增删改查，使用 post + action 的方式定义接口
 router.post('/login', login)
+
+// 关注某人
+router.put('/following/:id', auth, follow)
+// 取消关注
+router.delete('/following/:id', auth, unfollow)
+
+// 获取关注者列表
+router.get('/:id/following', listFollowing)
+
 module.exports = router

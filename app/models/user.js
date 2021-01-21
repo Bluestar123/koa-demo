@@ -63,6 +63,15 @@ const userSchema = new Schema({
       entrance_year: { type: Number },
       graduation_year: { type: Number }
     }]
+  },
+  // 关注数  存储id即可
+  // 通过populate 拿到详细信息
+  following: {
+    type: [{
+      type: Schema.Types.ObjectId, // 用户 _id
+      ref: 'User' // User model 名， 引用(跟user表对应)
+    }],
+    // select: false
   }
   // age: {
   //   type: Number,
