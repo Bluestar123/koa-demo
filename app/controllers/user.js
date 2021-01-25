@@ -12,18 +12,31 @@ class UsersCtl {
   }
 
   async find(ctx) {
+    const { fields = '' } = ctx.query
+    const selectFields = fields.split(';').filter(f => f).map(f => ' +' + f).join('')
+    let { page = 1, limit = 10 } = ctx.query
+    page = Math.max(+page, 1) - 1
+    limit = Math.max(+limit, 10)
+
     // 操作数据库一定要 await
-    ctx.body = await User.find() // .select('+password')
+    ctx.body = await User.find().limit(limit).skip(page * limit).select(selectFields) // .select('+password')
   }
   async findById(ctx) {
-    // if (ctx.params.id * 1 >= db.length) {
-    //   ctx.throw(412, '先决条件失败：id 大于等于数组长度')
-    // }
-    
     // 通过 fields 字段过滤
-    const { fields } = ctx.query
+    const { fields = '' } = ctx.query
     const selectFields = fields.split(';').filter(f => f).map(f => ' +' + f).join('')
+
+    const pupilateStr = fields.split(';').filter(f => f).map(f => {
+      if (f === 'employments') {
+        return 'empolymets.job employments.company'
+      }
+      if (f === 'educations') {
+        return 'educations.major educations.school'
+      }
+      return f
+    })
     const user = await User.findById(ctx.params.id).select(selectFields)
+                        .populate(pupilateStr)
 
     if (!user) {
       // id 位数对应上，随便写不行 500
@@ -33,7 +46,6 @@ class UsersCtl {
     }
   }
   async create(ctx) {
-    console.log(2222222222)
     // 校验name,age ,不满足条件返回 422 状态码
     // ctx.verifyParams({
     //   name: { type: 'string', required: true},
@@ -41,7 +53,6 @@ class UsersCtl {
     // })
     // 校验用户唯一性， 先查数据库中是否存在
     const { name } = ctx.request.body
-    console.log(name, 123)
     const repeatedUser = await User.findOne({ name })
     if (repeatedUser) {
       ctx.throw(409, '用户名已经存在')
@@ -110,6 +121,15 @@ class UsersCtl {
     ctx.body = users
   }
 
+  // 检查用户是否存在 中间件
+  async checkUserExist(ctx, next) {
+    const user = await User.findById(ctx.params.id)
+    if (!user) {
+      ctx.throw(404, '用户不存在')
+    }
+    await next()
+  }
+
   // 关注某人 (处理完数据库需要save)
   async follow(ctx) {
     const ownUser = await User.findById(ctx.state.user._id).select('+following')
@@ -129,6 +149,37 @@ class UsersCtl {
     // mongoose 自带的数据类型, 使用toString（）方法
     if (index > -1) {
       ownUser.following.splice(index, 1)
+      ownUser.save()
+    }
+    ctx.status = 204
+  }
+
+  // 获取某人的关注话题列表 
+  async listFollowingTopic(ctx) {
+    // 通过populate 的 following 字段内会是具体的 用户信息
+    const user = await User.findById(ctx.params.id).select('+followingTopics').populate('followingTopics')
+    if (!user) ctx.throw(404, '用户不存在')
+    ctx.body = user.followingTopics
+  }
+
+  // 关注话题
+  async followTopic(ctx) {
+    const ownUser = await User.findById(ctx.state.user._id).select('+followingTopics')
+    // mongoose 自带的数据类型, 使用toString（）方法
+    if (!ownUser.followingTopics.map(id => id.toString()).includes(ctx.params.id)) {
+      ownUser.followingTopics.push(ctx.params.id)
+      ownUser.save()
+    }
+    ctx.status = 204
+  }
+  // 取消关注话题
+  async unfollowTopic(ctx) {
+    // 当前登录者
+    const ownUser = await User.findById(ctx.state.user._id).select('+followingTopics')
+    const index = ownUser.followingTopics.map(id => id.toString()).indexOf(ctx.params.id)
+    // mongoose 自带的数据类型, 使用toString（）方法
+    if (index > -1) {
+      ownUser.followingTopics.splice(index, 1)
       ownUser.save()
     }
     ctx.status = 204

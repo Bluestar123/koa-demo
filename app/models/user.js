@@ -34,11 +34,13 @@ const userSchema = new Schema({
   locations: {
     select: false,
     type: [{
-      type: String
+      type: Schema.Types.ObjectId,
+      ref: 'Topic' // populate 读取详细信息
     }]
   },
   business: {
-    type: String
+    type: Schema.Types.ObjectId, // 创建时候 使用id 字符串
+    ref: 'Topic'
   },
   // 对象数组
   employments: {
@@ -46,10 +48,12 @@ const userSchema = new Schema({
     type: [
       {
         company: {
-          type: String
+          type: Schema.Types.ObjectId,
+          ref: 'Topic' // 引用// 创建时候 使用id 字符串
         },
         job: {
-          type: String
+          type: Schema.Types.ObjectId,
+          ref: 'Topic'
         }
       }
     ]
@@ -65,19 +69,29 @@ const userSchema = new Schema({
     }]
   },
   // 关注数  存储id即可
-  // 通过populate 拿到详细信息
+  // 通过populate 拿到详细信息   我关注了谁
   following: {
     type: [{
       type: Schema.Types.ObjectId, // 用户 _id
       ref: 'User' // User model 名， 引用(跟user表对应)
     }],
-    // select: false
+    select: false
+  },
+  // 用户和话题多对多 (是topic 的_id  获取具体的使用populate)
+  followingTopics: {
+    type: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Topic'
+      }
+    ],
+    select: false
   }
-  // age: {
-  //   type: Number,
-  //   required: false,
-  //   default: 0
-  // }
+}, {
+  timestamps: {
+    createdAt: 'created_time',
+    updatedAt: 'updated_time'
+  }
 })
 
 // 创建 user 表
