@@ -1,6 +1,6 @@
 const jsonwebtoken = require('jsonwebtoken')
 const Topic = require('../models/topics')
-
+const Question = require('../models/questions')
 class TopicsCtl {
 
   async checkTopicExist(ctx) {
@@ -48,6 +48,13 @@ class TopicsCtl {
     })
     const topic = await Topic.findByIdAndUpdate(ctx.params.id, ctx.request.body)
     ctx.body = topic
+  }
+
+  // 列出问题得 topics 中包含 当前topic 的列表
+  async listQuestions(ctx) {
+    // topics 中包含 当前topic id 的列表
+    const questions = await Question.find({topics: ctx.params.id})
+    ctx.body = questions
   }
 }
 

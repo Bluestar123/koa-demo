@@ -2,8 +2,15 @@ const Router = require('koa-router')
 // const jsonwebtoken = require('jsonwebtoken')
 const jwt = require('koa-jwt')
 const { secret } = require('../config')
-const { findById, create, update, unfollowTopic, listFollowingTopic, checkUserExist, find, del, login, checkOwner, listFollowing, follow, unfollow, followTopic } = require('../controllers/user')
+const { listQuestions, findById, create,
+      update, unfollowTopic, listFollowingTopic,
+      checkUserExist, find, del, login, checkOwner,
+      listFollowing, follow, unfollow, followTopic,
+      likeAnswer, listDisLikingAnswers,listLikingAnswers, unDislikeAnswer, unlikeAnswer, dislikeAnswer,
+      } = require('../controllers/user')
 const { checkTopicExist } = require('../controllers/topics')
+const { checkAnswerExist } = require('../controllers/answers')
+
 const router = new Router({
   prefix: '/users'
 })
@@ -55,7 +62,16 @@ router.delete('/followingTopics/:id', auth, checkTopicExist, unfollowTopic)
 
 // 获取关注者列表
 router.get('/:id/following', listFollowing)
+// 获取我的提问列表
+router.get('/:id/questions', listQuestions)
 
 router.get('/followingTopics/:id', listFollowingTopic)
+
+
+/**
+ * 赞和踩有个互斥的逻辑，攒了自动取消踩，踩了自动取消赞
+ */
+router.get('/likeAnswer/:id', auth, checkAnswerExist, likeAnswer, unDislikeAnswer)
+router.get('/dislikeAnswer/:id', auth, checkAnswerExist, dislikeAnswer, unlikeAnswer)
 
 module.exports = router

@@ -1,5 +1,7 @@
 const jsonwebtoken = require('jsonwebtoken')
 const User = require('../models/user')
+const Question = require('../models/questions')
+const Answer = require('../models/answers')
 const { secret } = require('../config')
 class UsersCtl {
   // 单独写 或者 写在model 都可以，中间件
@@ -183,6 +185,82 @@ class UsersCtl {
       ownUser.save()
     }
     ctx.status = 204
+  }
+
+
+  // 列出我的提问
+  async listQuestions(ctx) {
+    const questions = await Question.find({ questioner: ctx.params.id })
+    ctx.body = questions
+  }
+
+
+  // 某个用户赞过的答案列表
+  async listLikingAnswers(ctx) {
+    // 通过populate 的 likingAnswers 字段内会是具体的 用户信息
+    const user = await User.findById(ctx.params.id).select('+likingAnswers').populate('likingAnswers')
+    if (!user) ctx.throw(404, '用户不存在')
+    ctx.body = user.likingAnswers
+  }
+
+  // 我给答案点赞
+  async likeAnswer(ctx) {
+    const ownUser = await User.findById(ctx.state.user._id).select('+likingAnswers')
+    // mongoose 自带的数据类型, 使用toString（）方法
+    if (!ownUser.likingAnswers.map(id => id.toString()).includes(ctx.params.id)) {
+      ownUser.likingAnswers.push(ctx.params.id)
+      ownUser.save()
+      // 答案投票数加 1
+      await Answer.findByIdAndUpdate(ctx.params.id, {$inc: {voteCount: 1}})
+    }
+    ctx.status = 204
+    await next()
+  }
+  // 取消赞过的答案
+  async unlikeAnswer(ctx) {
+    // 当前登录者
+    const ownUser = await User.findById(ctx.state.user._id).select('+likingAnswers')
+    const index = ownUser.likingAnswers.map(id => id.toString()).indexOf(ctx.params.id)
+    // mongoose 自带的数据类型, 使用toString（）方法
+    if (index > -1) {
+      ownUser.likingAnswers.splice(index, 1)
+      ownUser.save()
+      await Answer.findByIdAndUpdate(ctx.params.id, {$inc: {voteCount: -1}})
+    }
+    ctx.status = 204
+  }
+
+  //////// 踩
+  // 某个用户赞过的答案列表
+  async listDisLikingAnswers(ctx) {
+    // 通过populate 的 dislikingAnswers 字段内会是具体的 用户信息
+    const user = await User.findById(ctx.params.id).select('+dislikingAnswers').populate('dislikingAnswers')
+    if (!user) ctx.throw(404, '用户不存在')
+    ctx.body = user.dislikingAnswers
+  }
+
+  // 我给答案点赞
+  async dislikeAnswer(ctx) {
+    const ownUser = await User.findById(ctx.state.user._id).select('+dislikingAnswers')
+    // mongoose 自带的数据类型, 使用toString（）方法
+    if (!ownUser.dislikingAnswers.map(id => id.toString()).includes(ctx.params.id)) {
+      ownUser.dislikingAnswers.push(ctx.params.id)
+      ownUser.save()
+    }
+    ctx.status = 204
+  }
+  // 取消赞过的答案
+  async unDislikeAnswer(ctx) {
+    // 当前登录者
+    const ownUser = await User.findById(ctx.state.user._id).select('+dislikingAnswers')
+    const index = ownUser.dislikingAnswers.map(id => id.toString()).indexOf(ctx.params.id)
+    // mongoose 自带的数据类型, 使用toString（）方法
+    if (index > -1) {
+      ownUser.dislikingAnswers.splice(index, 1)
+      ownUser.save()
+    }
+    ctx.status = 204
+    await next()
   }
 }
 
